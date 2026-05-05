@@ -140,6 +140,8 @@ def init_db():
     print("  │ Admin       │ admin         │ admin123    │")
     print("  │ Doctor      │ drsmith       │ doctor123   │")
     print("  │ Patient     │ john_patient  │ patient123  │")
+    print("  │ Doctor      │ drmyra        │ doctor123   │")
+    print("  │ Patient     │ kavyap        │ patient123  │")
     print("  └─────────────┴───────────────┴─────────────┘")
 
 
