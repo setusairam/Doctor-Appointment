@@ -67,6 +67,35 @@ def logout():
     return jsonify({'ok': True})
 
 
+@app.route('/api/signup', methods=['POST'])
+def signup():
+    data     = request.json or {}
+    username = (data.get('username') or '').strip()
+    password = (data.get('password') or '').strip()
+    name     = (data.get('name') or '').strip()
+
+    if not username or not password or not name:
+        return jsonify({'error': 'username, password and full name are required'}), 400
+    if len(password) < 6:
+        return jsonify({'error': 'Password must be at least 6 characters'}), 400
+
+    try:
+        with get_db() as conn:
+            cur = conn.execute(
+                "INSERT INTO users (username, password, role) VALUES (?, ?, 'PATIENT')",
+                (username, generate_password_hash(password))
+            )
+            user_id = cur.lastrowid
+            conn.execute(
+                "INSERT INTO patients (user_id, name) VALUES (?, ?)",
+                (user_id, name)
+            )
+            conn.commit()
+        return jsonify({'ok': True, 'message': 'Account created! You can now log in.'}), 201
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'Username already taken'}), 409
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # ADMIN — APPOINTMENTS
 # ─────────────────────────────────────────────────────────────────────────────
@@ -145,6 +174,39 @@ def admin_doctors():
             ORDER BY d.doctor_id
         """).fetchall()
     return jsonify([dict(r) for r in rows])
+
+
+@app.route('/api/admin/doctors', methods=['POST'])
+@require_role('ADMIN')
+def admin_doctor_add():
+    data     = request.json or {}
+    username = (data.get('username') or '').strip()
+    password = (data.get('password') or '').strip()
+    name     = (data.get('name') or '').strip()
+    spec     = (data.get('speciality') or '').strip()
+    phone    = (data.get('phone') or '').strip()
+    email    = (data.get('email') or '').strip()
+
+    if not username or not password or not name or not spec:
+        return jsonify({'error': 'username, password, name and speciality are required'}), 400
+
+    try:
+        with get_db() as conn:
+            # Create user account
+            cur = conn.execute(
+                "INSERT INTO users (username, password, role) VALUES (?, ?, 'DOCTOR')",
+                (username, generate_password_hash(password))
+            )
+            user_id = cur.lastrowid
+            # Create doctor profile
+            dcur = conn.execute(
+                "INSERT INTO doctors (user_id, name, speciality, phone, email) VALUES (?, ?, ?, ?, ?)",
+                (user_id, name, spec, phone, email)
+            )
+            conn.commit()
+            return jsonify({'ok': True, 'doctor_id': dcur.lastrowid, 'user_id': user_id}), 201
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'Username already exists'}), 409
 
 
 @app.route('/api/admin/doctors/<int:doctor_id>', methods=['PUT'])

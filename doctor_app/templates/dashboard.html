@@ -217,11 +217,15 @@ tr:hover td{background:var(--teal-xl)}
 
     <div class="panel" id="panel-admin-doctors">
       <div class="page-title">Doctor Management</div>
-      <p class="page-sub">View and edit doctor profiles</p>
+      <p class="page-sub">View, add and edit doctor profiles</p>
       <div id="doctors-alert" class="alert"></div>
       <div class="card">
         <div class="card-header"><span class="card-title">👨‍⚕️ Doctors</span>
-          <button class="ref-btn" onclick="loadAdminDoctors()">↻ Refresh</button></div>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-primary" onclick="openModal('modal-add-doctor')">+ Add Doctor</button>
+            <button class="ref-btn" onclick="loadAdminDoctors()">↻ Refresh</button>
+          </div>
+        </div>
         <div class="tbl-wrap"><table>
           <thead><tr><th>ID</th><th>Name</th><th>Speciality</th><th>Phone</th><th>Email</th><th>Username</th><th>Actions</th></tr></thead>
           <tbody id="doctors-body"></tbody>
@@ -415,6 +419,47 @@ tr:hover td{background:var(--teal-xl)}
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-edit-clinic')">Cancel</button>
       <button class="btn btn-primary" onclick="submitEditClinic()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Doctor -->
+<div class="overlay" id="modal-add-doctor">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add New Doctor</div>
+      <button class="modal-close" onclick="closeModal('modal-add-doctor')">×</button>
+    </div>
+    <div id="add-doctor-alert" class="alert"></div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Full Name *</label>
+      <input type="text" id="add-doctor-name" placeholder="e.g. Dr. Myra Patel"/>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Speciality *</label>
+      <input type="text" id="add-doctor-spec" placeholder="e.g. Cardiology"/>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Phone</label>
+      <input type="text" id="add-doctor-phone" placeholder="Optional"/>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Email</label>
+      <input type="email" id="add-doctor-email" placeholder="Optional"/>
+    </div>
+    <hr class="divider"/>
+    <div style="font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:.6rem">Login Credentials</div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Username *</label>
+      <input type="text" id="add-doctor-username" placeholder="Login username for the doctor"/>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Password *</label>
+      <input type="password" id="add-doctor-password" placeholder="Min. 6 characters"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-doctor')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddDoctor()">Create Doctor</button>
     </div>
   </div>
 </div>
@@ -1077,6 +1122,38 @@ async function loadDbData(table) {
       `<tr>${cols.map(c => `<td>${row[c]??'<span style="color:#94a3b8">NULL</span>'}</td>`).join('')}</tr>`
     ).join('')}</tbody>
   </table>`;
+}
+
+// ── ADMIN — ADD DOCTOR ────────────────────────────────────────────────────────
+async function submitAddDoctor() {
+  const name     = document.getElementById('add-doctor-name').value.trim();
+  const spec     = document.getElementById('add-doctor-spec').value.trim();
+  const phone    = document.getElementById('add-doctor-phone').value.trim();
+  const email    = document.getElementById('add-doctor-email').value.trim();
+  const username = document.getElementById('add-doctor-username').value.trim();
+  const password = document.getElementById('add-doctor-password').value.trim();
+
+  if (!name || !spec || !username || !password) {
+    showAlert('add-doctor-alert', 'Name, Speciality, Username and Password are required'); return;
+  }
+  if (password.length < 6) {
+    showAlert('add-doctor-alert', 'Password must be at least 6 characters'); return;
+  }
+
+  const res = await fetch('/api/admin/doctors', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({name, speciality: spec, phone, email, username, password})
+  });
+  const data = await res.json();
+  if (res.ok) {
+    closeModal('modal-add-doctor');
+    showAlert('doctors-alert', `✓ Doctor "${name}" created with username "${username}"`, 'success');
+    loadAdminDoctors();
+    ['add-doctor-name','add-doctor-spec','add-doctor-phone','add-doctor-email','add-doctor-username','add-doctor-password']
+      .forEach(id => document.getElementById(id).value = '');
+  } else {
+    showAlert('add-doctor-alert', data.error || 'Failed to create doctor');
+  }
 }
 
 // ── DOCTOR ───────────────────────────────────────────────────────────────────

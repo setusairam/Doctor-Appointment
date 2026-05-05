@@ -193,6 +193,43 @@
     Doctor: <code>drsmith</code> / <code>doctor123</code><br/>
     Patient: <code>john_patient</code> / <code>patient123</code>
   </div>
+
+  <p style="text-align:center;margin-top:1.2rem;font-size:.88rem;color:var(--muted)">
+    New patient?
+    <button onclick="openSignup()" style="background:none;border:none;color:var(--teal);font-weight:600;cursor:pointer;font-size:.88rem;font-family:inherit;padding:0">Create an account →</button>
+  </p>
+</div>
+
+<!-- SIGNUP MODAL -->
+<div id="signup-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:999;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:14px;padding:2rem 2rem 1.5rem;width:min(420px,92vw);box-shadow:0 20px 60px rgba(13,148,136,.15);border:1px solid var(--border);animation:fadeUp .3s ease both">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.4rem">
+      <div style="font-family:'DM Serif Display',serif;font-size:1.25rem;color:var(--slate)">Create Patient Account</div>
+      <button onclick="closeSignup()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);line-height:1">×</button>
+    </div>
+
+    <div id="signup-error" class="error"></div>
+    <div id="signup-success" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:8px;padding:.7rem 1rem;font-size:.88rem;margin-bottom:1rem;display:none"></div>
+
+    <label for="su-name">Full Name</label>
+    <input type="text" id="su-name" placeholder="e.g. Priya Sharma"/>
+
+    <label for="su-username">Username</label>
+    <input type="text" id="su-username" placeholder="Choose a username"/>
+
+    <label for="su-password">Password</label>
+    <input type="password" id="su-password" placeholder="Min. 6 characters"/>
+
+    <label for="su-confirm">Confirm Password</label>
+    <input type="password" id="su-confirm" placeholder="Re-enter password" style="margin-bottom:1.2rem"/>
+
+    <button class="btn" onclick="doSignup()">Sign Up as Patient</button>
+
+    <p style="text-align:center;margin-top:1rem;font-size:.82rem;color:var(--muted)">
+      Already have an account?
+      <button onclick="closeSignup()" style="background:none;border:none;color:var(--teal);font-weight:600;cursor:pointer;font-size:.82rem;font-family:inherit;padding:0">Sign In</button>
+    </p>
+  </div>
 </div>
 
 <script>
@@ -231,6 +268,59 @@ async function doLogin() {
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function openSignup() {
+  document.getElementById('signup-overlay').style.display = 'flex';
+  document.getElementById('su-name').focus();
+}
+function closeSignup() {
+  document.getElementById('signup-overlay').style.display = 'none';
+  ['su-name','su-username','su-password','su-confirm'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('signup-error').style.display = 'none';
+  document.getElementById('signup-success').style.display = 'none';
+}
+
+async function doSignup() {
+  const name     = document.getElementById('su-name').value.trim();
+  const username = document.getElementById('su-username').value.trim();
+  const password = document.getElementById('su-password').value;
+  const confirm  = document.getElementById('su-confirm').value;
+  const errEl    = document.getElementById('signup-error');
+  const okEl     = document.getElementById('signup-success');
+
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+
+  if (!name || !username || !password || !confirm) {
+    errEl.textContent = 'Please fill in all fields.'; errEl.style.display = 'block'; return;
+  }
+  if (password !== confirm) {
+    errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return;
+  }
+  if (password.length < 6) {
+    errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return;
+  }
+
+  try {
+    const res  = await fetch('/api/signup', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username, password, name})
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Signup failed.'; errEl.style.display = 'block'; return;
+    }
+    okEl.textContent = '✓ Account created! You can now sign in as a Patient.';
+    okEl.style.display = 'block';
+    // Pre-fill login form
+    document.getElementById('username').value = username;
+    document.getElementById('role').value = 'PATIENT';
+    setTimeout(closeSignup, 2000);
+  } catch {
+    errEl.textContent = 'Network error.'; errEl.style.display = 'block';
+  }
+}
 </script>
 </body>
 </html>
