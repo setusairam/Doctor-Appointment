@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MediBook — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#0d9488;--teal-d:#0f766e;--teal-l:#ccfbf1;--teal-xl:#f0fdfa;
+  --slate:#1e293b;--muted:#64748b;--bg:#f8fafc;--white:#fff;--border:#e2e8f0;
+  --green:#16a34a;--green-l:#dcfce7;--red:#dc2626;--red-l:#fee2e2;
+  --amber:#d97706;--amber-l:#fef3c7;--blue:#2563eb;--blue-l:#dbeafe;
+  --purple:#7c3aed;--purple-l:#ede9fe;
+  --radius:10px;--shadow:0 2px 12px rgba(15,23,42,.07);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--slate);min-height:100vh}
+
+/* NAV */
+nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5rem;height:60px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;
+  box-shadow:0 1px 4px rgba(15,23,42,.06)}
+.logo{display:flex;align-items:center;gap:.6rem}
+.logo-icon{width:34px;height:34px;background:var(--teal);border-radius:8px;display:grid;place-items:center;font-size:1rem}
+.logo-text{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--slate)}
+.logo-text span{color:var(--teal)}
+.nav-right{display:flex;align-items:center;gap:.8rem}
+.badge{padding:.2rem .7rem;border-radius:99px;font-size:.72rem;font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+.badge-admin{background:var(--purple-l);color:var(--purple)}
+.badge-doctor{background:var(--teal-l);color:var(--teal-d)}
+.badge-patient{background:var(--amber-l);color:var(--amber)}
+.user-info{font-size:.85rem;color:var(--muted);font-weight:500}
+.btn-logout{padding:.35rem .9rem;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;
+  font-size:.82rem;color:var(--muted);background:none;cursor:pointer;transition:all .2s}
+.btn-logout:hover{border-color:var(--red);color:var(--red)}
+
+/* LAYOUT */
+.layout{display:flex;min-height:calc(100vh - 60px)}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--white);border-right:1px solid var(--border);
+  padding:1rem 0;flex-shrink:0;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
+.sidebar-section{padding:.4rem .8rem .2rem;font-size:.7rem;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.6px;margin-top:.6rem}
+.nav-item{display:flex;align-items:center;gap:.6rem;padding:.55rem 1rem;margin:.1rem .5rem;
+  border-radius:8px;font-size:.88rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s}
+.nav-item:hover{background:var(--teal-xl);color:var(--teal)}
+.nav-item.active{background:var(--teal-xl);color:var(--teal);font-weight:600}
+.nav-item .icon{font-size:1rem;width:20px;text-align:center}
+
+/* MAIN */
+main{flex:1;padding:1.5rem;overflow:auto}
+
+/* PANELS */
+.panel{display:none}
+.panel.active{display:block}
+
+.page-title{font-family:'DM Serif Display',serif;font-size:1.5rem;margin-bottom:.25rem}
+.page-sub{color:var(--muted);font-size:.88rem;margin-bottom:1.5rem}
+
+/* CARD */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
+  padding:1.25rem;margin-bottom:1.2rem;box-shadow:var(--shadow)}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.card-title{font-size:.95rem;font-weight:600;color:var(--slate)}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th{text-align:left;padding:.5rem .75rem;background:var(--bg);color:var(--muted);
+  font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+  border-bottom:1px solid var(--border)}
+td{padding:.7rem .75rem;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--teal-xl)}
+
+/* STATUS */
+.status{display:inline-block;padding:.2rem .6rem;border-radius:99px;font-size:.72rem;font-weight:600}
+.status-BOOKED{background:var(--amber-l);color:var(--amber)}
+.status-COMPLETED{background:var(--green-l);color:var(--green)}
+.status-CANCELLED{background:var(--red-l);color:var(--red)}
+.status-NOSHOW{background:#f1f5f9;color:#64748b}
+
+/* BUTTONS */
+.btn{padding:.6rem 1.2rem;border:none;border-radius:7px;font-family:inherit;font-size:.88rem;
+  font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--teal);color:#fff}
+.btn-primary:hover{background:var(--teal-d)}
+.btn-secondary{background:var(--bg);color:var(--slate);border:1.5px solid var(--border)}
+.btn-secondary:hover{border-color:var(--teal);color:var(--teal)}
+.btn-sm{padding:.28rem .65rem;border:none;border-radius:5px;font-family:inherit;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;margin-right:.25rem}
+.btn-ok{background:var(--green-l);color:var(--green)}
+.btn-ok:hover{background:var(--green);color:#fff}
+.btn-warn{background:var(--amber-l);color:var(--amber)}
+.btn-warn:hover{background:var(--amber);color:#fff}
+.btn-danger{background:var(--red-l);color:var(--red)}
+.btn-danger:hover{background:var(--red);color:#fff}
+.btn-blue{background:var(--blue-l);color:var(--blue)}
+.btn-blue:hover{background:var(--blue);color:#fff}
+.btn-noshow{background:#f1f5f9;color:#64748b}
+.btn-noshow:hover{background:#64748b;color:#fff}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.9rem;margin-bottom:1rem}
+.form-group label{display:block;font-size:.75rem;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.4px;margin-bottom:.3rem}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;padding:.6rem .85rem;border:1.5px solid var(--border);border-radius:7px;
+  font-family:inherit;font-size:.88rem;color:var(--slate);background:var(--bg);outline:none;
+  transition:border-color .2s,box-shadow .2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+  border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.1)}
+.form-group textarea{resize:vertical;min-height:60px}
+
+/* ALERT */
+.alert{padding:.65rem .9rem;border-radius:7px;font-size:.84rem;margin-bottom:.9rem;display:none}
+.alert-success{background:var(--green-l);color:var(--green);display:block}
+.alert-error{background:var(--red-l);color:var(--red);display:block}
+.alert-info{background:var(--blue-l);color:var(--blue);display:block}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:300;
+  display:none;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--white);border-radius:var(--radius);padding:1.5rem;
+  width:min(480px,94vw);max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem}
+.modal-title{font-weight:600;font-size:1rem}
+.modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);line-height:1}
+.modal-close:hover{color:var(--red)}
+.modal-footer{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1rem}
+
+/* SLOTS */
+.slots-wrap{display:flex;flex-wrap:wrap;gap:.4rem;margin:.8rem 0}
+.slot{padding:.35rem .75rem;border:1.5px solid var(--border);border-radius:6px;
+  font-size:.82rem;font-weight:500;cursor:pointer;transition:all .18s;background:var(--white)}
+.slot:hover:not(.slot-taken){border-color:var(--teal);color:var(--teal)}
+.slot.selected{background:var(--teal);color:#fff;border-color:var(--teal)}
+.slot-taken{background:#f1f5f9;color:#94a3b8;cursor:not-allowed;text-decoration:line-through}
+
+/* DB INSPECTOR */
+.table-tabs{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem}
+.ttab{padding:.35rem .85rem;border-radius:6px;font-size:.82rem;font-weight:500;cursor:pointer;
+  border:1.5px solid var(--border);background:var(--white);color:var(--muted);transition:all .15s}
+.ttab:hover{border-color:var(--teal);color:var(--teal)}
+.ttab.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+.schema-pill{display:inline-flex;gap:.4rem;align-items:center;background:var(--bg);
+  border:1px solid var(--border);border-radius:6px;padding:.2rem .6rem;font-size:.78rem;margin:.2rem}
+.schema-pk{background:var(--amber-l);color:var(--amber)}
+.schema-fk{background:var(--blue-l);color:var(--blue)}
+.schema-nn{background:var(--red-l);color:var(--red)}
+
+/* MISC */
+.empty-row td{text-align:center;color:#94a3b8;padding:2rem!important}
+.ref-btn{background:none;border:none;cursor:pointer;color:var(--teal);font-size:.82rem;font-family:inherit;font-weight:500}
+.ref-btn:hover{text-decoration:underline}
+.divider{border:none;border-top:1px solid var(--border);margin:1rem 0}
+.tag{display:inline-block;padding:.15rem .5rem;border-radius:5px;font-size:.72rem;font-weight:600}
+.tag-map{background:var(--teal-l);color:var(--teal-d)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <div class="logo-icon">🏥</div>
+    <div class="logo-text">Medi<span>Book</span></div>
+  </div>
+  <div class="nav-right">
+    <span class="user-info" id="nav-user"></span>
+    <span class="badge" id="nav-badge"></span>
+    <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar"></div>
+
+  <!-- MAIN -->
+  <main id="main-content">
+
+    <!-- ══════════════ ADMIN PANELS ══════════════ -->
+
+    <div class="panel" id="panel-admin-overview">
+      <div class="page-title">Dashboard Overview</div>
+      <p class="page-sub">System summary</p>
+      <div id="admin-overview-alert" class="alert"></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">📋 All Appointments</span>
+          <button class="ref-btn" onclick="loadAdminAppts()">↻ Refresh</button></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>#</th><th>Patient</th><th>Doctor</th><th>Speciality</th><th>Clinic</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+          <tbody id="admin-appt-body"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-admin-clinics">
+      <div class="page-title">Clinic Management</div>
+      <p class="page-sub">Add, view and edit clinics</p>
+      <div id="clinics-alert" class="alert"></div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🏥 Clinics</span>
+          <button class="btn btn-primary" onclick="openModal('modal-add-clinic')">+ Add Clinic</button>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>ID</th><th>Name</th><th>Address</th><th>Phone</th><th>Actions</th></tr></thead>
+          <tbody id="clinics-body"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-admin-doctors">
+      <div class="page-title">Doctor Management</div>
+      <p class="page-sub">View and edit doctor profiles</p>
+      <div id="doctors-alert" class="alert"></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">👨‍⚕️ Doctors</span>
+          <button class="ref-btn" onclick="loadAdminDoctors()">↻ Refresh</button></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>ID</th><th>Name</th><th>Speciality</th><th>Phone</th><th>Email</th><th>Username</th><th>Actions</th></tr></thead>
+          <tbody id="doctors-body"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-admin-map">
+      <div class="page-title">Doctor–Clinic Mapping</div>
+      <p class="page-sub">Assign doctors to clinics</p>
+      <div id="map-alert" class="alert"></div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🔗 Assignments</span>
+          <button class="btn btn-primary" onclick="openModal('modal-add-map')">+ Assign Doctor</button>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>ID</th><th>Doctor</th><th>Clinic</th><th>Actions</th></tr></thead>
+          <tbody id="map-body"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-admin-roster">
+      <div class="page-title">Doctor Roster</div>
+      <p class="page-sub">Manage weekly availability schedules</p>
+      <div id="roster-alert" class="alert"></div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🗓 Roster Entries</span>
+          <button class="btn btn-primary" onclick="openModal('modal-add-roster')">+ Add Schedule</button>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>ID</th><th>Doctor</th><th>Clinic</th><th>Day</th><th>Start</th><th>End</th><th>Actions</th></tr></thead>
+          <tbody id="roster-body"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-admin-leave">
+      <div class="page-title">Doctor Leave</div>
+      <p class="page-sub">Record and manage doctor leave periods</p>
+      <div id="leave-alert" class="alert"></div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🏖 Leave Records</span>
+          <button class="btn btn-primary" onclick="openModal('modal-add-leave')">+ Add Leave</button>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>ID</th><th>Doctor</th><th>From</th><th>To</th><th>Reason</th><th>Notes</th><th>Actions</th></tr></thead>
+          <tbody id="leave-body"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-admin-db">
+      <div class="page-title">Database Inspector</div>
+      <p class="page-sub">View all tables, schema and data</p>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🗄 Tables</span>
+          <button class="ref-btn" onclick="loadDbTables()">↻ Refresh</button></div>
+        <div class="table-tabs" id="db-table-tabs"></div>
+        <div id="db-schema-area"></div>
+        <hr class="divider"/>
+        <div class="card-header">
+          <span class="card-title" id="db-data-title">Select a table above</span>
+          <button class="ref-btn" id="db-reload-btn" onclick="loadDbData(currentDbTable)" style="display:none">↻ Reload</button>
+        </div>
+        <div class="tbl-wrap" id="db-data-area"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════ DOCTOR PANELS ══════════════ -->
+
+    <div class="panel" id="panel-doctor-appts">
+      <div class="page-title">My Appointments</div>
+      <p class="page-sub">View and update appointment status</p>
+      <div id="doc-alert" class="alert"></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🗓 Appointments</span>
+          <button class="ref-btn" onclick="loadDoctorAppts()">↻ Refresh</button></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>#</th><th>Patient</th><th>Clinic</th><th>Date</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="doctor-appt-body"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- ══════════════ PATIENT PANELS ══════════════ -->
+
+    <div class="panel" id="panel-patient-book">
+      <div class="page-title">Book Appointment</div>
+      <p class="page-sub">Check availability and book a slot</p>
+      <div id="book-alert" class="alert"></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">📅 Find a Slot</span></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Doctor</label>
+            <select id="sel-doctor" onchange="clearSlots()">
+              <option value="">Select a doctor…</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="sel-date" onchange="clearSlots()"/>
+          </div>
+          <div class="form-group" style="display:flex;align-items:flex-end">
+            <button class="btn btn-secondary" style="width:100%" onclick="loadSlots()">Check Availability</button>
+          </div>
+        </div>
+        <div id="slots-area" style="display:none">
+          <div style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:.5rem">
+            Available Slots — <span id="slots-clinic-label" style="color:var(--teal)"></span>
+          </div>
+          <div class="slots-wrap" id="slots-grid"></div>
+          <div style="font-size:.78rem;color:var(--muted);margin-bottom:.8rem">
+            🟩 Available &nbsp;|&nbsp; ✗ Taken
+          </div>
+          <button class="btn btn-primary" onclick="doBook()">Confirm Booking</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-patient-appts">
+      <div class="page-title">My Appointments</div>
+      <p class="page-sub">Your booking history</p>
+      <div class="card">
+        <div class="card-header"><span class="card-title">📋 Appointments</span>
+          <button class="ref-btn" onclick="loadPatientAppts()">↻ Refresh</button></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>#</th><th>Doctor</th><th>Speciality</th><th>Clinic</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+          <tbody id="patient-appt-body"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════ MODALS ══════════════ -->
+
+<!-- Add Clinic -->
+<div class="overlay" id="modal-add-clinic">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add New Clinic</div>
+      <button class="modal-close" onclick="closeModal('modal-add-clinic')">×</button>
+    </div>
+    <div id="add-clinic-alert" class="alert"></div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Clinic Name *</label>
+      <input type="text" id="add-clinic-name" placeholder="e.g. Metro Hospital"/>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Address</label>
+      <input type="text" id="add-clinic-addr" placeholder="Street, City"/>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Phone</label>
+      <input type="text" id="add-clinic-phone" placeholder="044-xxxxxxx"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-clinic')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddClinic()">Add Clinic</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Clinic -->
+<div class="overlay" id="modal-edit-clinic">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit Clinic</div>
+      <button class="modal-close" onclick="closeModal('modal-edit-clinic')">×</button>
+    </div>
+    <div id="edit-clinic-alert" class="alert"></div>
+    <input type="hidden" id="edit-clinic-id"/>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Clinic Name *</label>
+      <input type="text" id="edit-clinic-name"/>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Address</label>
+      <input type="text" id="edit-clinic-addr"/>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Phone</label>
+      <input type="text" id="edit-clinic-phone"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-clinic')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditClinic()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Doctor -->
+<div class="overlay" id="modal-edit-doctor">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit Doctor</div>
+      <button class="modal-close" onclick="closeModal('modal-edit-doctor')">×</button>
+    </div>
+    <div id="edit-doctor-alert" class="alert"></div>
+    <input type="hidden" id="edit-doctor-id"/>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Name *</label><input type="text" id="edit-doctor-name"/>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Speciality *</label><input type="text" id="edit-doctor-spec"/>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Phone</label><input type="text" id="edit-doctor-phone"/>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Email</label><input type="email" id="edit-doctor-email"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-doctor')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditDoctor()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Map -->
+<div class="overlay" id="modal-add-map">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Assign Doctor to Clinic</div>
+      <button class="modal-close" onclick="closeModal('modal-add-map')">×</button>
+    </div>
+    <div id="add-map-alert" class="alert"></div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Doctor *</label>
+      <select id="map-doctor-sel"><option value="">Select…</option></select>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Clinic *</label>
+      <select id="map-clinic-sel"><option value="">Select…</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-map')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddMap()">Assign</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Roster -->
+<div class="overlay" id="modal-add-roster">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Roster Entry</div>
+      <button class="modal-close" onclick="closeModal('modal-add-roster')">×</button>
+    </div>
+    <div id="add-roster-alert" class="alert"></div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Doctor *</label>
+      <select id="roster-doctor-sel"><option value="">Select…</option></select>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Clinic *</label>
+      <select id="roster-clinic-sel"><option value="">Select…</option></select>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Day of Week *</label>
+      <select id="roster-day">
+        <option value="">Select day…</option>
+        <option>Mon</option><option>Tue</option><option>Wed</option>
+        <option>Thu</option><option>Fri</option><option>Sat</option><option>Sun</option>
+      </select>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Start Time *</label>
+        <input type="time" id="roster-start"/>
+      </div>
+      <div class="form-group">
+        <label>End Time *</label>
+        <input type="time" id="roster-end"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-roster')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddRoster()">Add Schedule</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Roster -->
+<div class="overlay" id="modal-edit-roster">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit Roster Times</div>
+      <button class="modal-close" onclick="closeModal('modal-edit-roster')">×</button>
+    </div>
+    <div id="edit-roster-alert" class="alert"></div>
+    <input type="hidden" id="edit-roster-id"/>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Start Time *</label>
+        <input type="time" id="edit-roster-start"/>
+      </div>
+      <div class="form-group">
+        <label>End Time *</label>
+        <input type="time" id="edit-roster-end"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-roster')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditRoster()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Leave -->
+<div class="overlay" id="modal-add-leave">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Doctor Leave</div>
+      <button class="modal-close" onclick="closeModal('modal-add-leave')">×</button>
+    </div>
+    <div id="add-leave-alert" class="alert"></div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Doctor *</label>
+      <select id="leave-doctor-sel"><option value="">Select…</option></select>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Start Date *</label>
+        <input type="date" id="leave-start"/>
+      </div>
+      <div class="form-group">
+        <label>End Date *</label>
+        <input type="date" id="leave-end"/>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Reason *</label>
+      <select id="leave-reason">
+        <option value="">Select…</option>
+        <option value="SICK">SICK</option>
+        <option value="CONFERENCE">CONFERENCE</option>
+        <option value="OUT_OF_STATION">OUT_OF_STATION</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Notes</label>
+      <textarea id="leave-notes" placeholder="Optional notes…"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-leave')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddLeave()">Add Leave</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Leave -->
+<div class="overlay" id="modal-edit-leave">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit Leave Entry</div>
+      <button class="modal-close" onclick="closeModal('modal-edit-leave')">×</button>
+    </div>
+    <div id="edit-leave-alert" class="alert"></div>
+    <input type="hidden" id="edit-leave-id"/>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Start Date *</label>
+        <input type="date" id="edit-leave-start"/>
+      </div>
+      <div class="form-group">
+        <label>End Date *</label>
+        <input type="date" id="edit-leave-end"/>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Reason *</label>
+      <select id="edit-leave-reason">
+        <option value="SICK">SICK</option>
+        <option value="CONFERENCE">CONFERENCE</option>
+        <option value="OUT_OF_STATION">OUT_OF_STATION</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:.8rem">
+      <label>Notes</label>
+      <textarea id="edit-leave-notes"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-leave')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditLeave()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const role = localStorage.getItem('role');
+const username = localStorage.getItem('username');
+let currentPanel = '';
+let currentDbTable = '';
+let selectedSlot = null;
+let currentClinicId = null;
+
+// ── SIDEBARS ─────────────────────────────────────────────────────────────────
+const SIDEBARS = {
+  ADMIN: [
+    {icon:'📊', label:'Overview',     panel:'admin-overview'},
+    {icon:'🏥', label:'Clinics',      panel:'admin-clinics'},
+    {icon:'👨‍⚕️', label:'Doctors',     panel:'admin-doctors'},
+    {icon:'🔗', label:'Dr–Clinic Map',panel:'admin-map'},
+    {icon:'🗓', label:'Roster',       panel:'admin-roster'},
+    {icon:'🏖', label:'Doctor Leave', panel:'admin-leave'},
+    {icon:'🗄', label:'DB Inspector', panel:'admin-db'},
+  ],
+  DOCTOR: [
+    {icon:'🗓', label:'My Appointments', panel:'doctor-appts'},
+  ],
+  PATIENT: [
+    {icon:'📅', label:'Book Appointment', panel:'patient-book'},
+    {icon:'📋', label:'My Appointments',  panel:'patient-appts'},
+  ],
+};
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  if (!role) { window.location.href='/'; return; }
+
+  document.getElementById('nav-user').textContent = username;
+  const badge = document.getElementById('nav-badge');
+  badge.textContent = role;
+  badge.className = 'badge badge-' + role.toLowerCase();
+
+  const sidebarEl = document.getElementById('sidebar');
+  const items = SIDEBARS[role] || [];
+  let html = '';
+  items.forEach(item => {
+    html += `<div class="nav-item" id="nav-${item.panel}" onclick="showPanel('${item.panel}')">
+      <span class="icon">${item.icon}</span>${item.label}</div>`;
+  });
+  sidebarEl.innerHTML = html;
+
+  if (items.length) showPanel(items[0].panel);
+
+  const dateEl = document.getElementById('sel-date');
+  if (dateEl) dateEl.min = new Date().toISOString().split('T')[0];
+});
+
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const p = document.getElementById('panel-' + name);
+  if (p) p.classList.add('active');
+  const n = document.getElementById('nav-' + name);
+  if (n) n.classList.add('active');
+  currentPanel = name;
+
+  // Lazy-load data
+  if (name === 'admin-overview')  loadAdminAppts();
+  if (name === 'admin-clinics')   loadClinics();
+  if (name === 'admin-doctors')   loadAdminDoctors();
+  if (name === 'admin-map')       { loadMap(); populateMapSelects(); }
+  if (name === 'admin-roster')    { loadRoster(); populateRosterSelects(); }
+  if (name === 'admin-leave')     { loadLeave(); populateLeaveSelect(); }
+  if (name === 'admin-db')        loadDbTables();
+  if (name === 'doctor-appts')    loadDoctorAppts();
+  if (name === 'patient-book')    loadPatientDoctors();
+  if (name === 'patient-appts')   loadPatientAppts();
+}
+
+async function doLogout() {
+  await fetch('/api/logout', {method:'POST'});
+  localStorage.clear();
+  window.location.href = '/';
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function sbadge(s) {
+  return `<span class="status status-${s}">${s}</span>`;
+}
+function emptyRow(cols, msg='No records found.') {
+  return `<tr class="empty-row"><td colspan="${cols}">${msg}</td></tr>`;
+}
+function showAlert(id, msg, type='error') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'alert alert-' + type;
+  setTimeout(() => el.className = 'alert', 4500);
+}
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+// Close modal on overlay click
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('overlay')) e.target.classList.remove('open');
+});
+
+// ── ADMIN — APPOINTMENTS ─────────────────────────────────────────────────────
+async function loadAdminAppts() {
+  const res = await fetch('/api/admin/appointments');
+  const data = await res.json();
+  const body = document.getElementById('admin-appt-body');
+  if (!data.length) { body.innerHTML = emptyRow(8); return; }
+  body.innerHTML = data.map(a => `<tr>
+    <td>${a.appointment_id}</td><td><strong>${a.patient}</strong></td>
+    <td>${a.doctor}</td><td style="color:var(--muted)">${a.speciality}</td>
+    <td>${a.clinic_name}</td><td>${a.appt_date}</td><td>${a.appt_time}</td>
+    <td>${sbadge(a.status)}</td></tr>`).join('');
+}
+
+// ── ADMIN — CLINICS ───────────────────────────────────────────────────────────
+async function loadClinics() {
+  const res = await fetch('/api/admin/clinics');
+  const data = await res.json();
+  const body = document.getElementById('clinics-body');
+  if (!data.length) { body.innerHTML = emptyRow(5); return; }
+  body.innerHTML = data.map(c => `<tr>
+    <td>${c.clinic_id}</td><td><strong>${c.clinic_name}</strong></td>
+    <td style="color:var(--muted)">${c.address||'—'}</td>
+    <td>${c.phone||'—'}</td>
+    <td>
+      <button class="btn-sm btn-warn" onclick='openEditClinic(${JSON.stringify(c)})'>✏ Edit</button>
+    </td></tr>`).join('');
+}
+
+function openEditClinic(c) {
+  document.getElementById('edit-clinic-id').value    = c.clinic_id;
+  document.getElementById('edit-clinic-name').value  = c.clinic_name;
+  document.getElementById('edit-clinic-addr').value  = c.address||'';
+  document.getElementById('edit-clinic-phone').value = c.phone||'';
+  openModal('modal-edit-clinic');
+}
+
+async function submitAddClinic() {
+  const body = {
+    clinic_name: document.getElementById('add-clinic-name').value,
+    address:     document.getElementById('add-clinic-addr').value,
+    phone:       document.getElementById('add-clinic-phone').value,
+  };
+  const res = await fetch('/api/admin/clinics', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const data = await res.json();
+  if (!res.ok) { showAlert('add-clinic-alert', data.error); return; }
+  closeModal('modal-add-clinic');
+  showAlert('clinics-alert','Clinic added successfully!','success');
+  document.getElementById('add-clinic-name').value='';
+  document.getElementById('add-clinic-addr').value='';
+  document.getElementById('add-clinic-phone').value='';
+  loadClinics();
+}
+
+async function submitEditClinic() {
+  const id = document.getElementById('edit-clinic-id').value;
+  const body = {
+    clinic_name: document.getElementById('edit-clinic-name').value,
+    address:     document.getElementById('edit-clinic-addr').value,
+    phone:       document.getElementById('edit-clinic-phone').value,
+  };
+  const res = await fetch(`/api/admin/clinics/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const data = await res.json();
+  if (!res.ok) { showAlert('edit-clinic-alert', data.error); return; }
+  closeModal('modal-edit-clinic');
+  showAlert('clinics-alert','Clinic updated!','success');
+  loadClinics();
+}
+
+// ── ADMIN — DOCTORS ───────────────────────────────────────────────────────────
+async function loadAdminDoctors() {
+  const res = await fetch('/api/admin/doctors');
+  const data = await res.json();
+  const body = document.getElementById('doctors-body');
+  if (!data.length) { body.innerHTML = emptyRow(7); return; }
+  body.innerHTML = data.map(d => `<tr>
+    <td>${d.doctor_id}</td><td><strong>${d.name}</strong></td>
+    <td>${d.speciality}</td><td>${d.phone||'—'}</td>
+    <td>${d.email||'—'}</td><td style="color:var(--muted)">@${d.username}</td>
+    <td><button class="btn-sm btn-warn" onclick='openEditDoctor(${JSON.stringify(d)})'>✏ Edit</button></td>
+    </tr>`).join('');
+}
+
+function openEditDoctor(d) {
+  document.getElementById('edit-doctor-id').value    = d.doctor_id;
+  document.getElementById('edit-doctor-name').value  = d.name;
+  document.getElementById('edit-doctor-spec').value  = d.speciality;
+  document.getElementById('edit-doctor-phone').value = d.phone||'';
+  document.getElementById('edit-doctor-email').value = d.email||'';
+  openModal('modal-edit-doctor');
+}
+
+async function submitEditDoctor() {
+  const id = document.getElementById('edit-doctor-id').value;
+  const body = {
+    name:       document.getElementById('edit-doctor-name').value,
+    speciality: document.getElementById('edit-doctor-spec').value,
+    phone:      document.getElementById('edit-doctor-phone').value,
+    email:      document.getElementById('edit-doctor-email').value,
+  };
+  const res = await fetch(`/api/admin/doctors/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const data = await res.json();
+  if (!res.ok) { showAlert('edit-doctor-alert', data.error); return; }
+  closeModal('modal-edit-doctor');
+  showAlert('doctors-alert','Doctor updated!','success');
+  loadAdminDoctors();
+}
+
+// ── ADMIN — MAP ───────────────────────────────────────────────────────────────
+async function loadMap() {
+  const res = await fetch('/api/admin/doctor-clinic-map');
+  const data = await res.json();
+  const body = document.getElementById('map-body');
+  if (!data.length) { body.innerHTML = emptyRow(4); return; }
+  body.innerHTML = data.map(m => `<tr>
+    <td>${m.map_id}</td>
+    <td><strong>${m.doctor_name}</strong></td>
+    <td><span class="tag tag-map">${m.clinic_name}</span></td>
+    <td><button class="btn-sm btn-danger" onclick="deleteMap(${m.map_id})">✗ Remove</button></td>
+    </tr>`).join('');
+}
+
+async function populateMapSelects() {
+  const [dr, cl] = await Promise.all([
+    fetch('/api/admin/doctors').then(r=>r.json()),
+    fetch('/api/admin/clinics').then(r=>r.json()),
+  ]);
+  const ds = document.getElementById('map-doctor-sel');
+  ds.innerHTML = '<option value="">Select doctor…</option>';
+  dr.forEach(d => { const o=document.createElement('option'); o.value=d.doctor_id; o.textContent=d.name; ds.appendChild(o); });
+  const cs = document.getElementById('map-clinic-sel');
+  cs.innerHTML = '<option value="">Select clinic…</option>';
+  cl.forEach(c => { const o=document.createElement('option'); o.value=c.clinic_id; o.textContent=c.clinic_name; cs.appendChild(o); });
+}
+
+async function submitAddMap() {
+  const body = {
+    doctor_id: parseInt(document.getElementById('map-doctor-sel').value),
+    clinic_id: parseInt(document.getElementById('map-clinic-sel').value),
+  };
+  if (!body.doctor_id || !body.clinic_id) { showAlert('add-map-alert','Select both doctor and clinic'); return; }
+  const res = await fetch('/api/admin/doctor-clinic-map', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const data = await res.json();
+  if (!res.ok) { showAlert('add-map-alert', data.error); return; }
+  closeModal('modal-add-map');
+  showAlert('map-alert','Assignment added!','success');
+  loadMap();
+}
+
+async function deleteMap(id) {
+  if (!confirm('Remove this assignment?')) return;
+  await fetch(`/api/admin/doctor-clinic-map/${id}`, {method:'DELETE'});
+  showAlert('map-alert','Assignment removed.','info');
+  loadMap();
+}
+
+// ── ADMIN — ROSTER ────────────────────────────────────────────────────────────
+async function loadRoster() {
+  const res = await fetch('/api/admin/roster');
+  const data = await res.json();
+  const body = document.getElementById('roster-body');
+  if (!data.length) { body.innerHTML = emptyRow(7); return; }
+  body.innerHTML = data.map(r => `<tr>
+    <td>${r.roster_id}</td><td><strong>${r.doctor_name}</strong></td>
+    <td>${r.clinic_name}</td><td><b>${r.day_of_week}</b></td>
+    <td>${r.start_time}</td><td>${r.end_time}</td>
+    <td>
+      <button class="btn-sm btn-warn" onclick='openEditRoster(${JSON.stringify(r)})'>✏ Edit</button>
+      <button class="btn-sm btn-danger" onclick="deleteRoster(${r.roster_id})">✗ Del</button>
+    </td></tr>`).join('');
+}
+
+async function populateRosterSelects() {
+  const [dr, cl] = await Promise.all([
+    fetch('/api/admin/doctors').then(r=>r.json()),
+    fetch('/api/admin/clinics').then(r=>r.json()),
+  ]);
+  const ds = document.getElementById('roster-doctor-sel');
+  ds.innerHTML = '<option value="">Select doctor…</option>';
+  dr.forEach(d => { const o=document.createElement('option'); o.value=d.doctor_id; o.textContent=d.name; ds.appendChild(o); });
+  const cs = document.getElementById('roster-clinic-sel');
+  cs.innerHTML = '<option value="">Select clinic…</option>';
+  cl.forEach(c => { const o=document.createElement('option'); o.value=c.clinic_id; o.textContent=c.clinic_name; cs.appendChild(o); });
+}
+
+async function submitAddRoster() {
+  const body = {
+    doctor_id:   parseInt(document.getElementById('roster-doctor-sel').value),
+    clinic_id:   parseInt(document.getElementById('roster-clinic-sel').value),
+    day_of_week: document.getElementById('roster-day').value,
+    start_time:  document.getElementById('roster-start').value,
+    end_time:    document.getElementById('roster-end').value,
+  };
+  const res = await fetch('/api/admin/roster', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const data = await res.json();
+  if (!res.ok) { showAlert('add-roster-alert', data.error); return; }
+  closeModal('modal-add-roster');
+  showAlert('roster-alert','Schedule added!','success');
+  loadRoster();
+}
+
+function openEditRoster(r) {
+  document.getElementById('edit-roster-id').value    = r.roster_id;
+  document.getElementById('edit-roster-start').value = r.start_time;
+  document.getElementById('edit-roster-end').value   = r.end_time;
+  openModal('modal-edit-roster');
+}
+
+async function submitEditRoster() {
+  const id = document.getElementById('edit-roster-id').value;
+  const body = {
+    start_time: document.getElementById('edit-roster-start').value,
+    end_time:   document.getElementById('edit-roster-end').value,
+  };
+  const res = await fetch(`/api/admin/roster/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const data = await res.json();
+  if (!res.ok) { showAlert('edit-roster-alert', data.error); return; }
+  closeModal('modal-edit-roster');
+  showAlert('roster-alert','Schedule updated!','success');
+  loadRoster();
+}
+
+async function deleteRoster(id) {
+  if (!confirm('Delete this roster entry?')) return;
+  await fetch(`/api/admin/roster/${id}`, {method:'DELETE'});
+  showAlert('roster-alert','Entry deleted.','info');
+  loadRoster();
+}
+
+// ── ADMIN — LEAVE ─────────────────────────────────────────────────────────────
+async function loadLeave() {
+  const res = await fetch('/api/admin/leave');
+  const data = await res.json();
+  const body = document.getElementById('leave-body');
+  if (!data.length) { body.innerHTML = emptyRow(7); return; }
+  body.innerHTML = data.map(l => `<tr>
+    <td>${l.leave_id}</td><td><strong>${l.doctor_name}</strong></td>
+    <td>${l.start_date}</td><td>${l.end_date}</td>
+    <td><span class="tag tag-map">${l.reason}</span></td>
+    <td style="color:var(--muted)">${l.notes||'—'}</td>
+    <td>
+      <button class="btn-sm btn-warn" onclick='openEditLeave(${JSON.stringify(l)})'>✏ Edit</button>
+      <button class="btn-sm btn-danger" onclick="deleteLeave(${l.leave_id})">✗ Del</button>
+    </td></tr>`).join('');
+}
+
+async function populateLeaveSelect() {
+  const dr = await fetch('/api/admin/doctors').then(r=>r.json());
+  ['leave-doctor-sel'].forEach(sid => {
+    const s = document.getElementById(sid);
+    if (!s) return;
+    s.innerHTML = '<option value="">Select doctor…</option>';
+    dr.forEach(d => { const o=document.createElement('option'); o.value=d.doctor_id; o.textContent=d.name; s.appendChild(o); });
+  });
+}
+
+async function submitAddLeave() {
+  const body = {
+    doctor_id:  parseInt(document.getElementById('leave-doctor-sel').value),
+    start_date: document.getElementById('leave-start').value,
+    end_date:   document.getElementById('leave-end').value,
+    reason:     document.getElementById('leave-reason').value,
+    notes:      document.getElementById('leave-notes').value,
+  };
+  const res = await fetch('/api/admin/leave', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const data = await res.json();
+  if (!res.ok) { showAlert('add-leave-alert', data.error); return; }
+  closeModal('modal-add-leave');
+  showAlert('leave-alert','Leave recorded!','success');
+  loadLeave();
+}
+
+function openEditLeave(l) {
+  document.getElementById('edit-leave-id').value     = l.leave_id;
+  document.getElementById('edit-leave-start').value  = l.start_date;
+  document.getElementById('edit-leave-end').value    = l.end_date;
+  document.getElementById('edit-leave-reason').value = l.reason;
+  document.getElementById('edit-leave-notes').value  = l.notes||'';
+  openModal('modal-edit-leave');
+}
+
+async function submitEditLeave() {
+  const id = document.getElementById('edit-leave-id').value;
+  const body = {
+    start_date: document.getElementById('edit-leave-start').value,
+    end_date:   document.getElementById('edit-leave-end').value,
+    reason:     document.getElementById('edit-leave-reason').value,
+    notes:      document.getElementById('edit-leave-notes').value,
+  };
+  const res = await fetch(`/api/admin/leave/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const data = await res.json();
+  if (!res.ok) { showAlert('edit-leave-alert', data.error); return; }
+  closeModal('modal-edit-leave');
+  showAlert('leave-alert','Leave updated!','success');
+  loadLeave();
+}
+
+async function deleteLeave(id) {
+  if (!confirm('Delete this leave record?')) return;
+  await fetch(`/api/admin/leave/${id}`, {method:'DELETE'});
+  showAlert('leave-alert','Leave deleted.','info');
+  loadLeave();
+}
+
+// ── DB INSPECTOR ──────────────────────────────────────────────────────────────
+async function loadDbTables() {
+  const res = await fetch('/api/admin/db/tables');
+  const tables = await res.json();
+  const tabs = document.getElementById('db-table-tabs');
+  tabs.innerHTML = tables.map(t =>
+    `<div class="ttab" id="ttab-${t}" onclick="selectDbTable('${t}')">${t}</div>`
+  ).join('');
+  if (tables.length) selectDbTable(tables[0]);
+}
+
+async function selectDbTable(table) {
+  currentDbTable = table;
+  document.querySelectorAll('.ttab').forEach(t => t.classList.remove('active'));
+  const tab = document.getElementById('ttab-' + table);
+  if (tab) tab.classList.add('active');
+
+  // Schema
+  const sRes = await fetch(`/api/admin/db/schema/${table}`);
+  const cols = await sRes.json();
+  const schemaArea = document.getElementById('db-schema-area');
+  schemaArea.innerHTML = `<div style="margin-bottom:.6rem;font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">
+    Schema — ${table}</div>
+    <div>${cols.map(c => {
+      let tag = '';
+      if (c.pk) tag += `<span class="tag schema-pk">PK</span> `;
+      if (c.notnull) tag += `<span class="tag schema-nn">NOT NULL</span> `;
+      return `<span class="schema-pill">${tag}<b>${c.name}</b> <span style="color:var(--muted)">${c.type}</span></span>`;
+    }).join('')}</div>`;
+
+  // Data
+  await loadDbData(table);
+}
+
+async function loadDbData(table) {
+  if (!table) return;
+  const res = await fetch(`/api/admin/db/data/${table}`);
+  const result = await res.json();
+  document.getElementById('db-data-title').textContent =
+    `Data — ${table} (${result.total} row${result.total!==1?'s':''})`;
+  document.getElementById('db-reload-btn').style.display = 'inline';
+
+  const area = document.getElementById('db-data-area');
+  if (!result.rows.length) { area.innerHTML = '<p style="color:var(--muted);padding:.5rem">No data in this table.</p>'; return; }
+
+  const cols = result.columns;
+  area.innerHTML = `<table>
+    <thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+    <tbody>${result.rows.map(row =>
+      `<tr>${cols.map(c => `<td>${row[c]??'<span style="color:#94a3b8">NULL</span>'}</td>`).join('')}</tr>`
+    ).join('')}</tbody>
+  </table>`;
+}
+
+// ── DOCTOR ───────────────────────────────────────────────────────────────────
+async function loadDoctorAppts() {
+  const res = await fetch('/api/doctor/appointments');
+  const data = await res.json();
+  const body = document.getElementById('doctor-appt-body');
+  if (!data.length) { body.innerHTML = emptyRow(7); return; }
+  body.innerHTML = data.map(a => {
+    const canAct = a.status === 'BOOKED';
+    return `<tr>
+      <td>${a.appointment_id}</td><td><strong>${a.patient}</strong></td>
+      <td>${a.clinic_name}</td><td>${a.appt_date}</td><td>${a.appt_time}</td>
+      <td>${sbadge(a.status)}</td>
+      <td>${canAct ? `
+        <button class="btn-sm btn-ok" onclick="docUpdateStatus(${a.appointment_id},'COMPLETED')">✓ Done</button>
+        <button class="btn-sm btn-noshow" onclick="docUpdateStatus(${a.appointment_id},'NOSHOW')">⊘ No-Show</button>
+        <button class="btn-sm btn-danger" onclick="docUpdateStatus(${a.appointment_id},'CANCELLED')">✗ Cancel</button>
+      ` : '—'}</td></tr>`;
+  }).join('');
+}
+
+async function docUpdateStatus(id, status) {
+  const res = await fetch(`/api/doctor/appointments/${id}/status`, {
+    method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status})
+  });
+  if (res.ok) { showAlert('doc-alert',`Marked as ${status}`,'success'); loadDoctorAppts(); }
+  else { showAlert('doc-alert','Update failed'); }
+}
+
+// ── PATIENT ──────────────────────────────────────────────────────────────────
+async function loadPatientDoctors() {
+  const res = await fetch('/api/patient/doctors');
+  const data = await res.json();
+  const sel = document.getElementById('sel-doctor');
+  sel.innerHTML = '<option value="">Select a doctor…</option>';
+  data.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d.doctor_id;
+    o.textContent = `${d.name} — ${d.speciality} (${d.clinic_name})`;
+    sel.appendChild(o);
+  });
+}
+
+function clearSlots() {
+  document.getElementById('slots-area').style.display = 'none';
+  selectedSlot = null; currentClinicId = null;
+}
+
+async function loadSlots() {
+  const doctorId = document.getElementById('sel-doctor').value;
+  const apptDate = document.getElementById('sel-date').value;
+  if (!doctorId || !apptDate) { showAlert('book-alert','Select a doctor and date first'); return; }
+
+  const res = await fetch(`/api/patient/availability?doctor_id=${doctorId}&date=${apptDate}`);
+  const data = await res.json();
+
+  if (!res.ok) { showAlert('book-alert', data.error); return; }
+  if (data.message) { showAlert('book-alert', data.message, 'info'); return; }
+
+  currentClinicId = data.clinic_id;
+  document.getElementById('slots-clinic-label').textContent = data.clinic_name;
+
+  const grid = document.getElementById('slots-grid');
+  grid.innerHTML = '';
+  selectedSlot = null;
+
+  if (!data.slots.length) {
+    grid.innerHTML = '<em style="color:var(--muted)">No slots available.</em>';
+  } else {
+    data.slots.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'slot' + (s.available ? '' : ' slot-taken');
+      div.textContent = s.time;
+      if (s.available) {
+        div.onclick = () => {
+          document.querySelectorAll('.slot.selected').forEach(el => el.classList.remove('selected'));
+          div.classList.add('selected');
+          selectedSlot = s.time;
+        };
+      }
+      grid.appendChild(div);
+    });
+  }
+  document.getElementById('slots-area').style.display = 'block';
+}
+
+async function doBook() {
+  if (!selectedSlot) { showAlert('book-alert','Please select a time slot'); return; }
+  const doctorId = parseInt(document.getElementById('sel-doctor').value);
+  const apptDate = document.getElementById('sel-date').value;
+  const res = await fetch('/api/patient/book', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({doctor_id:doctorId, clinic_id:currentClinicId, appt_date:apptDate, appt_time:selectedSlot})
+  });
+  const data = await res.json();
+  if (res.ok) {
+    showAlert('book-alert','✓ Appointment booked!','success');
+    clearSlots();
+    document.getElementById('sel-date').value='';
+    document.getElementById('sel-doctor').value='';
+  } else { showAlert('book-alert', data.error); }
+}
+
+async function loadPatientAppts() {
+  const res = await fetch('/api/patient/appointments');
+  const data = await res.json();
+  const body = document.getElementById('patient-appt-body');
+  if (!data.length) { body.innerHTML = emptyRow(7); return; }
+  body.innerHTML = data.map(a => `<tr>
+    <td>${a.appointment_id}</td><td><strong>${a.doctor}</strong></td>
+    <td style="color:var(--muted)">${a.speciality}</td><td>${a.clinic_name}</td>
+    <td>${a.appt_date}</td><td>${a.appt_time}</td><td>${sbadge(a.status)}</td></tr>`).join('');
+}
+</script>
+</body>
+</html>
